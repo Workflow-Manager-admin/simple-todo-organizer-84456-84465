@@ -1,47 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import "./App.css";
+import "./todo_page.css";
+import StatusBar from "./components/StatusBar";
+import AppBar from "./components/AppBar";
+import Navbar from "./components/Navbar";
+import TodoList from "./components/TodoList";
+import AddTodoButton from "./components/AddTodoButton";
+import AddTodoModal from "./components/AddTodoModal";
+
+/*
+App state model:
+todos = [
+  {id, title, subtitle, completed}
+]
+*/
+
+const initialTodos = [
+  { id: 1, title: "Buy groceries", subtitle: "Milk, Bread, Cheese", completed: false },
+  { id: 2, title: "Walk dog", subtitle: "30min afternoon", completed: true },
+  { id: 3, title: "Read a book", subtitle: "Fiction, 20 pages", completed: false }
+];
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+  const [todos, setTodos] = useState(initialTodos);
+  const [filter, setFilter] = useState("all");
+  const [showAdd, setShowAdd] = useState(false);
 
   // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  function handleAddTodo(title, subtitle) {
+    setTodos(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        title,
+        subtitle,
+        completed: false
+      }
+    ]);
+  }
+
+  // PUBLIC_INTERFACE
+  function handleCheck(id) {
+    setTodos(prev =>
+      prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
+    );
+  }
+
+  // PUBLIC_INTERFACE
+  function handleEdit(id, title, subtitle) {
+    setTodos(prev =>
+      prev.map(t => t.id === id ? { ...t, title, subtitle } : t)
+    );
+  }
+
+  // PUBLIC_INTERFACE
+  function handleDelete(id) {
+    setTodos(prev =>
+      prev.filter(t => t.id !== id)
+    );
+  }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <StatusBar />
+      <AppBar />
+      <Navbar filter={filter} onFilterChange={setFilter} />
+      <TodoList
+        todos={todos}
+        filter={filter}
+        onCheck={handleCheck}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+      <AddTodoButton onClick={() => setShowAdd(true)} />
+      <AddTodoModal
+        show={showAdd}
+        onCreate={handleAddTodo}
+        onClose={() => setShowAdd(false)}
+      />
     </div>
   );
 }
